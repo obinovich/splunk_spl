@@ -1,0 +1,253 @@
+<form version="1.1">
+  <label>Monthly Stats</label>
+  <description>Display monthly statistics of notable events for previous and current month</description>
+  <fieldset submitButton="false" autoRun="false"></fieldset>
+  <row>
+    <panel>
+      <title>Comparison by Current and Last Month</title>
+      <chart>
+        <search>
+          <query>index="notable"  earliest="-1mon@mon" latest="@mon"
+    | stats count as "Previous Month Count" by source
+| join type=outer
+    [search index="notable"  earliest="@mon"
+| stats count as "Current Month Count" by source]
+| fillnull value=0</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Previous Month - Total Notables</title>
+      <single>
+        <title>critical/high/medium/low/informational</title>
+        <search>
+          <query>index="notable"  earliest="-1mon@mon" latest="@mon"
+    | stats count</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+      <single>
+        <title>critical/high/medium</title>
+        <search>
+          <query>index="notable"  severity IN ("critical", "high", "medium") earliest="-1mon@mon" latest="@mon"
+    | stats count</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Current Month - Total Notables</title>
+      <single>
+        <title>critical/high/medium/low/informational</title>
+        <search>
+          <query>index="notable"   earliest="@mon"
+    | stats count</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+      <single>
+        <title>critical/high/medium</title>
+        <search>
+          <query>index="notable"  severity IN ("critical", "high", "medium")  earliest="@mon"
+    | stats count</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Previous Month - Daily Average</title>
+      <single>
+        <title>critical/high/medium/low/informational</title>
+        <search>
+          <query>index="notable"  earliest="-1mon@mon" latest="@mon"
+| bucket _time span=1d
+| stats count by _time
+    | stats avg(count) as AverageCountPerDay
+| eval AverageCountPerDay=round(AverageCountPerDay)
+| table AverageCountPerDay</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+      <single>
+        <title>critical/high/medium</title>
+        <search>
+          <query>index="notable" severity IN ("critical", "high", "medium")  earliest="-1mon@mon" latest="@mon"
+| bucket _time span=1d
+| stats count by _time
+    | stats avg(count) as AverageCountPerDay
+| eval AverageCountPerDay=round(AverageCountPerDay)
+| table AverageCountPerDay</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Current Month - Daily Average</title>
+      <single>
+        <title>critical/high/medium/low/informational</title>
+        <search>
+          <query>index="notable"   earliest="@mon"
+| bucket _time span=1d
+| stats count by _time
+    | stats avg(count) as AverageCountPerDay
+| eval AverageCountPerDay=round(AverageCountPerDay)
+| table AverageCountPerDay</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+      <single>
+        <title>critical/high/medium</title>
+        <search>
+          <query>index="notable" severity IN ("critical", "high", "medium")   earliest="@mon"
+| bucket _time span=1d
+| stats count by _time
+    | stats avg(count) as AverageCountPerDay
+| eval AverageCountPerDay=round(AverageCountPerDay)
+| table AverageCountPerDay</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Previous Month Stats (Notable Events)</title>
+      <input type="time" token="prev_month" searchWhenChanged="true">
+        <label>Previous Month</label>
+        <default>
+          <earliest>-1mon@mon</earliest>
+          <latest>@mon</latest>
+        </default>
+      </input>
+      <table>
+        <title>critical/high/medium/low/informational</title>
+        <search>
+          <query>index="notable"
+| stats count by source</query>
+          <earliest>$prev_month.earliest$</earliest>
+          <latest>$prev_month.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">true</option>
+        <option name="wrap">false</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Current Month Stats (Notable Events)</title>
+      <input type="time" token="cur_month" searchWhenChanged="true">
+        <label>Current Month</label>
+        <default>
+          <earliest>@mon</earliest>
+          <latest>now</latest>
+        </default>
+      </input>
+      <table>
+        <title>critical/high/medium/low/informational</title>
+        <search>
+          <query>index="notable"
+| stats count by source</query>
+          <earliest>$cur_month.earliest$</earliest>
+          <latest>$cur_month.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">true</option>
+        <option name="wrap">false</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Previous Month Stats (Notable Events)</title>
+      <table>
+        <title>critical/high/medium</title>
+        <search>
+          <query>index="notable" severity IN ("critical", "high", "medium")
+| stats count by source, severity</query>
+          <earliest>$prev_month.earliest$</earliest>
+          <latest>$prev_month.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">true</option>
+        <option name="wrap">false</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Current Month Stats (Notable Events)</title>
+      <table>
+        <title>critical/high/medium</title>
+        <search>
+          <query>index="notable" severity IN ("critical", "high", "medium")
+| stats count by source, severity</query>
+          <earliest>$cur_month.earliest$</earliest>
+          <latest>$cur_month.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">true</option>
+        <option name="wrap">false</option>
+      </table>
+    </panel>
+  </row>
+</form>
